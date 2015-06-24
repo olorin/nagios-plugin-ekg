@@ -16,6 +16,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     System.Nagios.Plugin.Ekg
+                       System.Nagios.Plugin.Ekg.Types
   build-depends:       base >= 4.7 && <5,
                        nagios-check >= 0.3.1,
                        aeson,
