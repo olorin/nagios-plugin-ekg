@@ -7,6 +7,7 @@ import Control.Lens
 import Control.Monad.IO.Class
 import Data.Aeson
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.Text as T
 import Network.Wreq hiding (header)
 import qualified Network.Wreq as W
 import Options.Applicative
@@ -33,7 +34,9 @@ checkEkg = do
     opts <- liftIO $ execParser pluginOptParser
     let reqOpts = W.header "Accept" .~ ["application/json"] $ defaults
     resp <- liftIO . getWith reqOpts $ optsEndpoint opts
-    undefined
+    case resp ^. responseStatus . statusCode of
+        200 -> checkEkg' $ resp ^. responseBody
+        code -> addResult Critical . T.pack $ "EKG endpoint failed with status " <> show code
 
 checkEkg' :: ByteString -> NagiosPlugin ()
 checkEkg' bs = case (decode bs :: Maybe MetricTree) of
