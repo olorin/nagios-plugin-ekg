@@ -73,7 +73,7 @@ instance FromJSON MetricTree where
     parseJSON _          = fail "MetricTree must be an object"
 
 instance ToPerfData MetricTree where
-    toPerfData (MetricTree m) = M.foldrWithKey (renderValue "") [] m
+    toPerfData (MetricTree m) = M.foldrWithKey (renderValue Nothing) [] m
 
 renderMetric :: Text
              -> EkgMetric
@@ -85,14 +85,20 @@ renderMetric lbl (EkgGauge n) =
 renderMetric _ EkgLabel = []
 renderMetric _ EkgDistribution = []
 
-renderValue :: Text
+renderValue :: Maybe Text
             -> Text
             -> MetricNode
             -> [PerfDatum]
             -> [PerfDatum]
-renderValue base lbl (Leaf val) acc = acc
-    <> (renderMetric (base <> "_" <> lbl) val)
-renderValue base lbl (Branch branch) acc = acc
-    <> M.foldrWithKey (renderValue (base <> "_" <> lbl)) [] branch
+renderValue prefix lbl (Leaf val) acc = acc
+    <> (renderMetric (withPrefix prefix lbl) val)
+renderValue prefix lbl (Branch branch) acc = acc
+    <> M.foldrWithKey (renderValue (Just $ withPrefix prefix lbl)) [] branch
+
+withPrefix :: Maybe Text
+           -> Text
+           -> Text
+withPrefix Nothing suff = suff
+withPrefix (Just prefix) suff = prefix <> "_" <> suff
 
 
