@@ -7,6 +7,7 @@ import Control.Lens
 import Control.Monad.IO.Class
 import Data.Aeson
 import Data.ByteString.Lazy (ByteString)
+import qualified Data.ByteString.Lazy.Char8 as BL
 import qualified Data.Text as T
 import Network.Wreq hiding (header)
 import qualified Network.Wreq as W
@@ -34,13 +35,14 @@ checkEkg = do
     opts <- liftIO $ execParser pluginOptParser
     let reqOpts = W.header "Accept" .~ ["application/json"] $ defaults
     resp <- liftIO . getWith reqOpts $ optsEndpoint opts
+    liftIO . putStrLn $ BL.unpack (resp ^. responseBody)
     case resp ^. responseStatus . statusCode of
         200 -> checkEkg' $ resp ^. responseBody
         code -> addResult Critical . T.pack $ "EKG endpoint failed with status " <> show code
 
 checkEkg' :: ByteString -> NagiosPlugin ()
-checkEkg' bs = case (decode bs :: Maybe MetricTree) of
-    Nothing -> addResult Critical "failed to parse EKG output"
-    Just meters -> do
+checkEkg' bs = case (eitherDecode' bs :: Either String MetricTree) of
+    Left err -> addResult Critical $ "failed to parse EKG output: " <> T.pack err
+    Right meters -> do
         addPerfData meters
         addResult OK "perfdata only"

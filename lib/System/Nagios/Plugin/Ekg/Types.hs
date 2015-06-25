@@ -52,9 +52,18 @@ instance FromJSON MetricNode where
             then Leaf <$> parseJSON (Object o)
             else Branch <$> parseJSON (Object o)
       where
+        -- Educated guess as to whether this object is a leaf. It'll
+        -- definitely have "type"; it'll have "val" if it's a counter,
+        -- gauge or label and it'll have "variance" and "mean" if it's
+        -- a distribution.
+        --
+        -- My kingdom for an isomorphism.
         isLeaf :: HashMap Text Value -> Bool
-        isLeaf m = HM.member "type" m && HM.member "val" m
-    parseJSON _          = fail "MetricNode must be an object"
+        isLeaf m = HM.member "type" m &&
+            (HM.member "val" m ||
+                (HM.member "variance" m && HM.member "mean" m)
+            )
+    parseJSON x          = fail $ "MetricNode must be an object, not " <> show x
 
 newtype MetricTree = MetricTree
     { unMetricTree :: Map Text MetricNode }
