@@ -9,7 +9,7 @@ license:             MIT
 license-file:        LICENSE
 author:              Sharif Olorin
 maintainer:          sio@tesser.org
-copyright:           2015 Sharif Olorin
+copyright:           2015 Sharif Olorin and Anchor Systems
 category:            System
 build-type:          Simple
 cabal-version:       >=1.10
