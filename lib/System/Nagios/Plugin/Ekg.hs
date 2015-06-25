@@ -1,9 +1,7 @@
-module System.Nagios.Plugin.Ekg where
+module System.Nagios.Plugin.Ekg (
+    module System.Nagios.Plugin.Ekg.Check,
+    module System.Nagios.Plugin.Ekg.Types
+) where
 
-import System.Nagios.Plugin
-import Data.Aeson
-import Data.Text (Text)
-
-checkEkg :: Text
-         -> NagiosPlugin ()
-checkEkg uri = undefined
+import System.Nagios.Plugin.Ekg.Check
+import System.Nagios.Plugin.Ekg.Types
