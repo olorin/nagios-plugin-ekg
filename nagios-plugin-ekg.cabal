@@ -12,6 +12,7 @@ maintainer:          sio@tesser.org
 copyright:           2015 Sharif Olorin and Anchor Systems
 category:            System
 build-type:          Simple
+extra-source-files:  README.md
 cabal-version:       >=1.10
 
 source-repository    head
