@@ -25,3 +25,7 @@ OK: perfdata only | iterations=60614c;;;; rts_gc_bytes_allocated=0c;;;; rts_gc_b
 $ echo $?
 0
 ```
+
+# Requirements
+
+`nagios-plugin-ekg` has been tested with GHC 7.8.4 and GHC 7.10.1.
