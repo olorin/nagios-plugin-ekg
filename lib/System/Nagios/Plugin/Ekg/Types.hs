@@ -57,7 +57,7 @@ instance FromJSON MetricNode where
         -- gauge or label and it'll have "variance" and "mean" if it's
         -- a distribution.
         --
-        -- My kingdom for an isomorphism.
+        -- My kingdom for a schema.
         isLeaf :: HashMap Text Value -> Bool
         isLeaf m = HM.member "type" m &&
             (HM.member "val" m ||
