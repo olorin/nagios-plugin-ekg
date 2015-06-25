@@ -3,7 +3,7 @@ version:             0.1.0.0
 synopsis:            Monitor ekg metrics via Nagios
 description:         A generic Nagios plugin which retrieves metrics
                      from an application which uses
-                     <ekg http://hackage.haskell.org/package/ekg>.
+                     <http://hackage.haskell.org/package/ekg ekg>.
 homepage:            https://github.com/fractalcat/nagios-plugin-ekg
 license:             MIT
 license-file:        LICENSE
