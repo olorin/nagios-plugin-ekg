@@ -41,6 +41,7 @@ instance FromJSON EkgMetric where
             x   -> fail $ "Invalid metric type " <> T.unpack x
     parseJSON _          = fail "EkgMetric must be an object"
 
+-- | A node in the 'MetricTree'; a Leaf is a single metric.
 data MetricNode =
       Leaf EkgMetric
     | Branch (Map Text MetricNode)
@@ -75,30 +76,38 @@ instance FromJSON MetricTree where
 instance ToPerfData MetricTree where
     toPerfData (MetricTree m) = M.foldrWithKey (renderValue Nothing) [] m
 
+-- | Build perfdata from a single metric. The Nagios perfdata format
+--   doesn't allow us to sensibly represent the EKG 'Distribution' or
+--   'Label' types so we don't try.
 renderMetric :: Text
              -> EkgMetric
-             -> [PerfDatum]
+             -> Maybe PerfDatum
 renderMetric lbl (EkgCounter n) = 
-    [barePerfDatum lbl (IntegralValue n) Counter]
+    Just $ barePerfDatum lbl (IntegralValue n) Counter
 renderMetric lbl (EkgGauge n) =
-    [barePerfDatum lbl (RealValue n) NullUnit]
-renderMetric _ EkgLabel = []
-renderMetric _ EkgDistribution = []
+    Just $ barePerfDatum lbl (RealValue n) NullUnit
+renderMetric _ EkgLabel = Nothing
+renderMetric _ EkgDistribution = Nothing
 
+-- | Build perfdata from a node in the metric tree. Produce a
+--   'PerfDatum' from a 'Leaf', recursively walk a 'Branch' and
+--   mappend the leaves.
 renderValue :: Maybe Text
             -> Text
             -> MetricNode
             -> [PerfDatum]
             -> [PerfDatum]
-renderValue prefix lbl (Leaf val) acc = acc
-    <> (renderMetric (withPrefix prefix lbl) val)
+renderValue prefix lbl (Leaf val) acc =
+    case renderMetric (withPrefix prefix lbl) val of
+        Nothing -> acc
+        Just pd -> pd : acc
 renderValue prefix lbl (Branch branch) acc = acc
     <> M.foldrWithKey (renderValue (Just $ withPrefix prefix lbl)) [] branch
 
+-- | Construct a metric name, optionally prepended with a prefix (we
+--   want a prefix for every component of the name except the first one).
 withPrefix :: Maybe Text
            -> Text
            -> Text
 withPrefix Nothing suff = suff
 withPrefix (Just prefix) suff = prefix <> "_" <> suff
-
-
