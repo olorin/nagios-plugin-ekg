@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module System.Nagios.Plugin.Ekg.Types where
+module System.Nagios.Plugin.Ekg.Types (
+    MetricTree
+) where
 
 import Control.Applicative
 import Control.Monad
@@ -16,17 +18,14 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import System.Nagios.Plugin
 
-data PluginOpts = PluginOpts
-  { optsEndpoint :: String }
-
 data EkgMetric =
-     -- * Nondecreasing counter, e.g., all-time number of requests.
+     -- | Nondecreasing counter, e.g., all-time number of requests.
       EkgCounter Int64
-     -- * Measure of a quantity over time, e.g., number of requests per minute.
+     -- | Measure of a quantity over time, e.g., number of requests per minute.
     | EkgGauge Double
-    -- * Can't meaningfully turn labels into perfdata, this is a placeholder.
+     -- | Can't meaningfully turn labels into perfdata, this is a placeholder.
     | EkgLabel
-    -- * Can't meaningfully turn distributions into perfdata, this is a placeholder.
+     -- | Can't meaningfully turn distributions into perfdata, this is a placeholder.
     | EkgDistribution
   deriving (Eq, Show)
 
@@ -66,6 +65,9 @@ instance FromJSON MetricNode where
             )
     parseJSON x          = fail $ "MetricNode must be an object, not " <> show x
 
+-- | Top-level object for parsed EKG metrics. Structurally, this is an
+--   n-ary tree; the leaves are the metrics themselves and the
+--   non-leaf nodes are used to construct the metric labels.
 newtype MetricTree = MetricTree
     { unMetricTree :: Map Text MetricNode }
 

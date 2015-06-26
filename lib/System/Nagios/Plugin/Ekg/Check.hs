@@ -1,6 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module System.Nagios.Plugin.Ekg.Check where
+module System.Nagios.Plugin.Ekg.Check (
+    checkEkg,
+    checkEkg'
+) where
 
 import Control.Applicative
 import Control.Lens
@@ -16,6 +19,9 @@ import System.Nagios.Plugin
 
 import System.Nagios.Plugin.Ekg.Types
 
+data PluginOpts = PluginOpts
+  { optsEndpoint :: String }
+
 pluginOptParser :: ParserInfo PluginOpts
 pluginOptParser =  info (helper <*> opts)
     (   fullDesc
@@ -30,6 +36,11 @@ pluginOptParser =  info (helper <*> opts)
                                      <> help "URL of the EKG endpoint."
                                     )
 
+-- | Run the check against the EKG endpoint specified on the command
+--   line. Terminate according to the
+--   <https://nagios-plugins.org/doc/guidelines.html#PLUGOUTPUT plugin development guidelines> -
+--   'OK' if we retrieve and successfully parse a result, otherwise
+--   'CRITICAL'.
 checkEkg :: NagiosPlugin ()
 checkEkg = do
     opts <- liftIO $ execParser pluginOptParser
@@ -39,6 +50,8 @@ checkEkg = do
         200 -> checkEkg' $ resp ^. responseBody
         code -> addResult Critical . T.pack $ "EKG endpoint failed with status " <> show code
 
+-- | Version of 'checkEkg' which takes a 'ByteString' rather than
+--   requesting it from an EKG endpoint.
 checkEkg' :: ByteString -> NagiosPlugin ()
 checkEkg' bs = case (eitherDecode' bs :: Either String MetricTree) of
     Left err -> addResult Critical $ "failed to parse EKG output: " <> T.pack err

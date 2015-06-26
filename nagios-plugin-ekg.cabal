@@ -1,5 +1,5 @@
 name:                nagios-plugin-ekg
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Monitor ekg metrics via Nagios
 description:         A generic Nagios plugin which retrieves metrics
                      from an application which uses
